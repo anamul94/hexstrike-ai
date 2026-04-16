@@ -5,14 +5,14 @@
 # HexStrike AI MCP Agents v6.0
 ### AI-Powered MCP Cybersecurity Automation Platform
 
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.12%2B-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/0x4m4/hexstrike-ai)
-[![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/0x4m4/hexstrike-ai)
-[![Version](https://img.shields.io/badge/Version-6.0.0-orange.svg)](https://github.com/0x4m4/hexstrike-ai/releases)
-[![Tools](https://img.shields.io/badge/Security%20Tools-150%2B-brightgreen.svg)](https://github.com/0x4m4/hexstrike-ai)
-[![Agents](https://img.shields.io/badge/AI%20Agents-12%2B-purple.svg)](https://github.com/0x4m4/hexstrike-ai)
-[![Stars](https://img.shields.io/github/stars/0x4m4/hexstrike-ai?style=social)](https://github.com/0x4m4/hexstrike-ai)
+[![Security](https://img.shields.io/badge/Security-Penetration%20Testing-red.svg)](https://github.com/anamul94/hexstrike-ai)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://github.com/anamul94/hexstrike-ai)
+[![Version](https://img.shields.io/badge/Version-6.0.0-orange.svg)](https://github.com/anamul94/hexstrike-ai/releases)
+[![Tools](https://img.shields.io/badge/Security%20Tools-150%2B-brightgreen.svg)](https://github.com/anamul94/hexstrike-ai)
+[![Agents](https://img.shields.io/badge/AI%20Agents-12%2B-purple.svg)](https://github.com/anamul94/hexstrike-ai)
+[![Stars](https://img.shields.io/github/stars/anamul94/hexstrike-ai?style=social)](https://github.com/anamul94/hexstrike-ai)
 
 **Advanced AI-powered penetration testing MCP framework with 150+ security tools and 12+ autonomous AI agents**
 
@@ -114,7 +114,7 @@ graph TD
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/0x4m4/hexstrike-ai.git
+git clone https://github.com/anamul94/hexstrike-ai.git
 cd hexstrike-ai
 
 # 2. Create virtual environment
@@ -126,6 +126,95 @@ source hexstrike-env/bin/activate  # Linux/Mac
 pip3 install -r requirements.txt
 
 ```
+
+---
+
+### 🐳 Docker Installation (Recommended)
+
+The easiest way to get started — no manual tool installation required. The Docker image comes pre-loaded with all security tools.
+
+#### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) installed and running
+
+#### Build the Image
+
+```bash
+# Clone the repository
+git clone https://github.com/anamul94/hexstrike-ai.git
+cd hexstrike-ai
+
+# Build full image (all 150+ tools — may take 10-20 min)
+make build
+
+# OR build minimal image (base tools only, faster)
+make build-minimal
+
+# OR build manually
+docker build -t hexstrike-ai .
+```
+
+#### Run the API Server
+
+```bash
+# Start the server on port 8888
+make run
+
+# Verify it's healthy
+make health
+
+# Follow logs
+make logs
+```
+
+#### Run the MCP Client
+
+```bash
+# Start the MCP client (connects to a running API server)
+make run-mcp
+```
+
+#### All Makefile Targets
+
+| Target | Description |
+|--------|-------------|
+| `make build` | Build full image with all tools |
+| `make build-minimal` | Build image without full extra tools |
+| `make run` | Run API server container on port 8888 |
+| `make run-mcp` | Run MCP client container |
+| `make stop` | Stop and remove the container |
+| `make restart` | Recreate the API server container |
+| `make logs` | Follow container logs |
+| `make shell` | Open a shell inside the running container |
+| `make health` | Query the `/health` API endpoint |
+| `make clean` | Remove the local Docker image |
+
+#### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HEXSTRIKE_HOST` | `0.0.0.0` | Server bind address |
+| `HEXSTRIKE_PORT` | `8888` | Server port |
+| `HEXSTRIKE_SERVER` | `http://host.docker.internal:8888` | MCP client target server |
+
+#### Custom Port Example
+
+```bash
+docker run -d --name hexstrike-ai -p 9999:8888 hexstrike-ai
+```
+
+#### Build Arguments
+
+| ARG | Default | Description |
+|-----|---------|-------------|
+| `INSTALL_BASE_TOOLS` | `true` | Install base pentesting tools (nmap, gobuster, etc.) |
+| `INSTALL_FULL_TOOLS` | `true` | Install full tool set (metasploit, ghidra, etc.) |
+
+```bash
+# Example: skip full tools for a lighter image
+docker build --build-arg INSTALL_FULL_TOOLS=false -t hexstrike-ai .
+```
+
+---
 
 ### Installation and Setting Up Guide for various AI Clients:
 
@@ -214,46 +303,225 @@ curl -X POST http://localhost:8888/api/intelligence/analyze-target \
 
 ## AI Client Integration Setup
 
-### Claude Desktop Integration or Cursor
+> [!IMPORTANT]
+> The **MCP client** (`hexstrike_mcp.py`) always runs **locally on your machine** inside your AI client.
+> The **API server** (`hexstrike_server.py`) can run either in **Docker** or in a local **venv**.
+> Choose the integration config below that matches how you started the server.
 
-Edit `~/.config/Claude/claude_desktop_config.json`:
+---
+
+### 🐳 Mode 1 — Server Running in Docker
+
+Start the server first:
+```bash
+make run   # starts hexstrike_server.py inside Docker on port 8888
+```
+
+The MCP client on your machine connects to `http://localhost:8888`.
+
+---
+
+#### Claude Desktop (Docker mode)
+
+Config file locations:
+- **Linux**: `~/.config/claude/claude_desktop_config.json`
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+
 ```json
 {
   "mcpServers": {
     "hexstrike-ai": {
       "command": "python3",
       "args": [
-        "/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "/absolute/path/to/hexstrike-ai/hexstrike_mcp.py",
         "--server",
         "http://localhost:8888"
       ],
       "description": "HexStrike AI v6.0 - Advanced Cybersecurity Automation Platform",
       "timeout": 300,
-      "disabled": false
+      "alwaysAllow": []
     }
   }
 }
 ```
 
-### VS Code Copilot Integration
+---
 
-Configure VS Code settings in `.vscode/settings.json`:
+#### Cursor (Docker mode)
+
+Open **Cursor → Settings → MCP** and add:
 ```json
 {
-  "servers": {
-    "hexstrike": {
+  "mcpServers": {
+    "hexstrike-ai": {
+      "command": "python3",
+      "args": [
+        "/absolute/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "--server",
+        "http://localhost:8888"
+      ],
+      "timeout": 300
+    }
+  }
+}
+```
+
+---
+
+#### VS Code Copilot (Docker mode)
+
+In `.vscode/settings.json` or your user `settings.json`:
+```json
+{
+  "github.copilot.chat.mcp.servers": {
+    "hexstrike-ai": {
       "type": "stdio",
       "command": "python3",
       "args": [
-        "/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "/absolute/path/to/hexstrike-ai/hexstrike_mcp.py",
         "--server",
         "http://localhost:8888"
       ]
     }
-  },
-  "inputs": []
+  }
 }
 ```
+
+---
+
+#### Roo Code (Docker mode)
+
+Open **Roo Code → MCP Servers → Edit Config** and add:
+```json
+{
+  "mcpServers": {
+    "hexstrike-ai": {
+      "command": "python3",
+      "args": [
+        "/absolute/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "--server",
+        "http://localhost:8888"
+      ],
+      "timeout": 300,
+      "alwaysAllow": []
+    }
+  }
+}
+```
+
+---
+
+### 🐍 Mode 2 — Server Running in venv (Local)
+
+Start the server first:
+```bash
+cd /path/to/hexstrike-ai
+source hexstrike-env/bin/activate
+python3 hexstrike_server.py --port 8888
+```
+
+The MCP client connects to `http://localhost:8888` exactly the same as Docker mode.
+You can also use the **venv Python** directly as the MCP command so no activation step is needed.
+
+---
+
+#### Claude Desktop (venv mode)
+
+```json
+{
+  "mcpServers": {
+    "hexstrike-ai": {
+      "command": "/absolute/path/to/hexstrike-ai/hexstrike-env/bin/python3",
+      "args": [
+        "/absolute/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "--server",
+        "http://localhost:8888"
+      ],
+      "description": "HexStrike AI v6.0 - Advanced Cybersecurity Automation Platform",
+      "timeout": 300,
+      "alwaysAllow": []
+    }
+  }
+}
+```
+
+---
+
+#### Cursor (venv mode)
+
+```json
+{
+  "mcpServers": {
+    "hexstrike-ai": {
+      "command": "/absolute/path/to/hexstrike-ai/hexstrike-env/bin/python3",
+      "args": [
+        "/absolute/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "--server",
+        "http://localhost:8888"
+      ],
+      "timeout": 300
+    }
+  }
+}
+```
+
+---
+
+#### VS Code Copilot (venv mode)
+
+```json
+{
+  "github.copilot.chat.mcp.servers": {
+    "hexstrike-ai": {
+      "type": "stdio",
+      "command": "/absolute/path/to/hexstrike-ai/hexstrike-env/bin/python3",
+      "args": [
+        "/absolute/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "--server",
+        "http://localhost:8888"
+      ]
+    }
+  }
+}
+```
+
+---
+
+#### Roo Code (venv mode)
+
+```json
+{
+  "mcpServers": {
+    "hexstrike-ai": {
+      "command": "/absolute/path/to/hexstrike-ai/hexstrike-env/bin/python3",
+      "args": [
+        "/absolute/path/to/hexstrike-ai/hexstrike_mcp.py",
+        "--server",
+        "http://localhost:8888"
+      ],
+      "timeout": 300,
+      "alwaysAllow": []
+    }
+  }
+}
+```
+
+---
+
+### 📋 Quick Reference — Both Modes
+
+| Setting | Docker Mode | venv Mode |
+|--------|-------------|-----------|
+| **Server started by** | `make run` | `python3 hexstrike_server.py` |
+| **`command`** | `python3` (system) | `hexstrike-env/bin/python3` (venv) |
+| **`--server` URL** | `http://localhost:8888` | `http://localhost:8888` |
+| **Tools available** | All 150+ (pre-installed in image) | Depends on your local installs |
+| **Isolation** | ✅ Full container isolation | ❌ Runs on host system |
+| **Recommended for** | Production / full tool access | Development / quick testing |
+
+> [!NOTE]
+> Replace `/absolute/path/to/hexstrike-ai/` with your actual clone path in all configs above.
+> You can also use the `hexstrike-ai-mcp.json` file included in the repo as a starting point.
 
 ---
 
@@ -588,7 +856,6 @@ AI Agent: "Thank you for clarifying ownership and intent. To proceed with a pene
 ### Key Improvements & New Features
 
 - **Streamlined Installation Process** - One-command setup with automated dependency management
-- **Docker Container Support** - Containerized deployment for consistent environments
 - **250+ Specialized AI Agents/Tools** - Expanded from 150+ to 250+ autonomous security agents
 - **Native Desktop Client** - Full-featured Application ([www.hexstrike.com](https://www.hexstrike.com))
 - **Advanced Web Automation** - Enhanced Selenium integration with anti-detection
@@ -669,7 +936,7 @@ We welcome contributions from the cybersecurity and AI community!
 
 ```bash
 # 1. Fork and clone the repository
-git clone https://github.com/0x4m4/hexstrike-ai.git
+git clone https://github.com/anamul94/hexstrike-ai.git
 cd hexstrike-ai
 
 # 2. Create development environment
@@ -733,7 +1000,7 @@ MIT License - see LICENSE file for details.
 
 ## 🌟 **Star History**
 
-[![Star History Chart](https://api.star-history.com/svg?repos=0x4m4/hexstrike-ai&type=Date)](https://star-history.com/#0x4m4/hexstrike-ai&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=anamul94/hexstrike-ai&type=Date)](https://star-history.com/#anamul94/hexstrike-ai&Date)
 
 ### **📊 Project Statistics**
 
@@ -746,7 +1013,7 @@ MIT License - see LICENSE file for details.
 
 ### **🚀 Ready to Transform Your AI Agents?**
 
-**[⭐ Star this repository](https://github.com/0x4m4/hexstrike-ai)** • **[🍴 Fork and contribute](https://github.com/0x4m4/hexstrike-ai/fork)** • **[📖 Read the docs](docs/)**
+**[⭐ Star this repository](https://github.com/anamul94/hexstrike-ai)** • **[🍴 Fork and contribute](https://github.com/anamul94/hexstrike-ai/fork)** • **[📖 Read the docs](docs/)**
 
 ---
 
